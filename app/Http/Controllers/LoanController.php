@@ -11,6 +11,90 @@ use Illuminate\Support\Str;
 class LoanController extends Controller
 {
     /**
+     * Tampilan daftar seluruh peminjaman untuk guru (US #3 & Monitoring)
+     */
+    public function index(Request $request)
+    {
+        $query = Loan::with(['item', 'user', 'approver'])->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('loan_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('item', fn ($i) => $i->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $loans = $query->paginate(15)->withQueryString();
+
+        // Otomatis cek keterlambatan
+        foreach ($loans as $loan) {
+            $loan->checkOverdue();
+        }
+
+        $pendingCount = Loan::where('status', 'pending')->count();
+        $activeCount = Loan::whereIn('status', ['approved', 'borrowed'])->count();
+        $overdueCount = Loan::where('status', 'overdue')->orWhere('is_overdue', true)->count();
+
+        return view('loans.index', compact('loans', 'pendingCount', 'activeCount', 'overdueCount'));
+    }
+
+    /**
+     * Approve permohonan peminjaman oleh guru (US #3)
+     */
+    public function approve(Request $request, Loan $loan)
+    {
+        if ($loan->status !== 'pending') {
+            return back()->with('error', 'Hanya permohonan dengan status pending yang dapat disetujui.');
+        }
+
+        $item = $loan->item;
+        if ($item->available_stock < $loan->quantity) {
+            return back()->with('error', "Gagal menyetujui: Stok barang '{$item->name}' tidak mencukupi saat ini.");
+        }
+
+        // Kurangi stok barang
+        $item->decrement('available_stock', $loan->quantity);
+
+        $loan->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', "Permohonan {$loan->loan_code} ({$loan->item->name}) berhasil disetujui! Stok barang telah diperbarui.");
+    }
+
+    /**
+     * Reject permohonan peminjaman oleh guru (US #3)
+     */
+    public function reject(Request $request, Loan $loan)
+    {
+        if ($loan->status !== 'pending') {
+            return back()->with('error', 'Hanya permohonan dengan status pending yang dapat ditolak.');
+        }
+
+        $request->validate([
+            'rejection_reason' => ['required', 'string', 'min:3', 'max:255'],
+        ], [
+            'rejection_reason.required' => 'Wajib menyertakan alasan penolakan permohonan.',
+        ]);
+
+        $loan->update([
+            'status' => 'rejected',
+            'approved_by' => auth()->id(),
+            'rejection_reason' => $request->rejection_reason,
+        ]);
+
+        return back()->with('success', "Permohonan {$loan->loan_code} telah ditolak dengan alasan: {$request->rejection_reason}.");
+    }
+
+    /**
      * Tampilan form pengajuan peminjaman oleh siswa (US #2)
      */
     public function create(Request $request)

@@ -20,6 +20,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
     Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
     Route::get('/loans/my', [\App\Http\Controllers\LoanController::class, 'myLoans'])->name('loans.my');
+
+    // Approval Guru (US #3)
+    Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+    Route::post('/loans/{loan}/approve', [\App\Http\Controllers\LoanController::class, 'approve'])->name('loans.approve');
+    Route::post('/loans/{loan}/reject', [\App\Http\Controllers\LoanController::class, 'reject'])->name('loans.reject');
 });
 
 // Dashboard placeholder for now
