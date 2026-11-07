@@ -95,6 +95,95 @@ class LoanController extends Controller
     }
 
     /**
+     * Halaman inspeksi serah terima & pengembalian kondisi barang (US #5)
+     */
+    public function showInspect(Loan $loan)
+    {
+        $loan->load(['user', 'item', 'approver']);
+        $loan->checkOverdue();
+
+        return view('loans.inspect', compact('loan'));
+    }
+
+    /**
+     * Catat kondisi fisik saat barang diserahkan ke siswa (Handover) (US #5)
+     */
+    public function updateHandover(Request $request, Loan $loan)
+    {
+        $validated = $request->validate([
+            'initial_condition' => ['required', 'string'],
+            'initial_notes' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $loan->update([
+            'status' => 'borrowed',
+            'initial_condition' => $validated['initial_condition'],
+            'initial_notes' => $validated['initial_notes'],
+        ]);
+
+        return back()->with('success', "Barang telah diserahkan kepada {$loan->user->name}. Status berubah menjadi 'Sedang Dipinjam'.");
+    }
+
+    /**
+     * Proses pengembalian barang & pencatatan kondisi akhir (US #5, US #7)
+     */
+    public function processReturn(Request $request, Loan $loan)
+    {
+        $validated = $request->validate([
+            'actual_return_date' => ['required', 'date'],
+            'return_condition' => ['required', 'in:baik,rusak_ringan,rusak_berat,hilang'],
+            'damage_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = $loan->item;
+        $returnDate = Carbon::parse($validated['actual_return_date']);
+        $expectedDate = $loan->expected_return_date;
+
+        $isOverdue = false;
+        $overdueDays = 0;
+
+        if ($returnDate->gt($expectedDate)) {
+            $isOverdue = true;
+            $overdueDays = $returnDate->diffInDays($expectedDate);
+        }
+
+        $damageReported = in_array($validated['return_condition'], ['rusak_ringan', 'rusak_berat', 'hilang']);
+
+        // Update stok barang
+        if ($validated['return_condition'] === 'baik') {
+            $item->increment('available_stock', $loan->quantity);
+        } elseif ($validated['return_condition'] === 'rusak_ringan') {
+            $item->increment('available_stock', $loan->quantity);
+            $item->update(['condition' => 'rusak_ringan']);
+        } elseif ($validated['return_condition'] === 'rusak_berat') {
+            // Jangan kembalikan stok tersedia karena tidak bisa dipinjam
+            $item->update(['condition' => 'rusak_berat']);
+        } elseif ($validated['return_condition'] === 'hilang') {
+            $item->decrement('total_stock', $loan->quantity);
+        }
+
+        $loan->update([
+            'actual_return_date' => $validated['actual_return_date'],
+            'return_condition' => $validated['return_condition'],
+            'damage_notes' => $validated['damage_notes'],
+            'damage_reported' => $damageReported,
+            'is_overdue' => $isOverdue,
+            'overdue_days' => $overdueDays,
+            'status' => 'returned',
+        ]);
+
+        $message = "Pengembalian barang berhasil dicatat! Status peminjaman selesai.";
+        if ($damageReported) {
+            $message .= " Peringatan: Kerusakan barang telah dicatat dalam sistem dan notice dibuat!";
+        }
+        if ($isOverdue) {
+            $message .= " Catatan: Pengembalian terlambat {$overdueDays} hari dan otomatis masuk laporan.";
+        }
+
+        return redirect()->route('loans.index')->with('success', $message);
+    }
+
+    /**
      * Tampilan form pengajuan peminjaman oleh siswa (US #2)
      */
     public function create(Request $request)

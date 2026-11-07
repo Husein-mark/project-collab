@@ -25,6 +25,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
     Route::post('/loans/{loan}/approve', [\App\Http\Controllers\LoanController::class, 'approve'])->name('loans.approve');
     Route::post('/loans/{loan}/reject', [\App\Http\Controllers\LoanController::class, 'reject'])->name('loans.reject');
+
+    // Pencatatan Kondisi Barang (US #5)
+    Route::get('/loans/{loan}/inspect', [\App\Http\Controllers\LoanController::class, 'showInspect'])->name('loans.inspect');
+    Route::post('/loans/{loan}/handover', [\App\Http\Controllers\LoanController::class, 'updateHandover'])->name('loans.handover');
+    Route::post('/loans/{loan}/return', [\App\Http\Controllers\LoanController::class, 'processReturn'])->name('loans.processReturn');
 });
 
 // Dashboard placeholder for now
