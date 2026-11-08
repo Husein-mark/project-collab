@@ -172,6 +172,19 @@ class LoanController extends Controller
             'status' => 'returned',
         ]);
 
+        if ($damageReported) {
+            \App\Models\DamageNotice::updateOrCreate(
+                ['loan_id' => $loan->id],
+                [
+                    'item_id' => $item->id,
+                    'user_id' => $loan->user_id,
+                    'damage_level' => $validated['return_condition'],
+                    'notes' => $validated['damage_notes'] ?? 'Dilaporkan rusak saat proses pengembalian barang.',
+                    'status' => 'menunggu_tindakan',
+                ]
+            );
+        }
+
         $message = "Pengembalian barang berhasil dicatat! Status peminjaman selesai.";
         if ($damageReported) {
             $message .= " Peringatan: Kerusakan barang telah dicatat dalam sistem dan notice dibuat!";
