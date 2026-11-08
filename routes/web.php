@@ -30,6 +30,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/loans/{loan}/inspect', [\App\Http\Controllers\LoanController::class, 'showInspect'])->name('loans.inspect');
     Route::post('/loans/{loan}/handover', [\App\Http\Controllers\LoanController::class, 'updateHandover'])->name('loans.handover');
     Route::post('/loans/{loan}/return', [\App\Http\Controllers\LoanController::class, 'processReturn'])->name('loans.processReturn');
+
+    // Notice & Notifikasi Kerusakan (US #6)
+    Route::get('/notices', [\App\Http\Controllers\DamageNoticeController::class, 'index'])->name('notices.index');
+    Route::post('/notices/{notice}/status', [\App\Http\Controllers\DamageNoticeController::class, 'updateStatus'])->name('notices.updateStatus');
 });
 
 // Dashboard placeholder for now
