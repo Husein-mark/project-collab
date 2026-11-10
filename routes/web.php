@@ -34,6 +34,9 @@ Route::middleware('auth')->group(function () {
     // Notice & Notifikasi Kerusakan (US #6)
     Route::get('/notices', [\App\Http\Controllers\DamageNoticeController::class, 'index'])->name('notices.index');
     Route::post('/notices/{notice}/status', [\App\Http\Controllers\DamageNoticeController::class, 'updateStatus'])->name('notices.updateStatus');
+
+    // Laporan & Monitoring Otomatis (US #10)
+    Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 });
 
 // Dashboard placeholder for now
