@@ -39,11 +39,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 });
 
-// Dashboard placeholder for now
-Route::middleware('auth')->get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user->isGuru()) {
-        return view('dashboard.guru');
-    }
-    return view('dashboard.siswa');
-})->name('dashboard');
+// Dashboard
+Route::middleware('auth')->get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
