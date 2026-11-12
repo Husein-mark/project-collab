@@ -19,6 +19,15 @@
                 Ajukan Peminjaman
             </a>
         </div>
+        @elseif(auth()->user()->isGuru())
+        <div>
+            <a href="{{ route('items.create') }}" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl shadow-xs transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Tambah Barang Baru
+            </a>
+        </div>
         @endif
     </div>
 
@@ -90,6 +99,19 @@
                    class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition">
                     Pilih Barang &rarr;
                 </a>
+                @elseif(auth()->user()->isGuru())
+                <div class="flex items-center space-x-1">
+                    <a href="{{ route('items.edit', $item) }}" class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                        Edit
+                    </a>
+                    <form action="{{ route('items.destroy', $item) }}" method="POST" onsubmit="return confirm('Hapus barang {{ $item->name }} dari inventaris?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                            Hapus
+                        </button>
+                    </form>
+                </div>
                 @endif
             </div>
         </div>
