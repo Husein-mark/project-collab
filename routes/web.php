@@ -12,9 +12,14 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Items / Katalog
+// Items / Katalog & CRUD (US #4, #13)
 Route::middleware('auth')->group(function () {
     Route::get('/items', [\App\Http\Controllers\ItemController::class, 'index'])->name('items.index');
+    Route::get('/items/create', [\App\Http\Controllers\ItemController::class, 'create'])->name('items.create');
+    Route::post('/items', [\App\Http\Controllers\ItemController::class, 'store'])->name('items.store');
+    Route::get('/items/{item}/edit', [\App\Http\Controllers\ItemController::class, 'edit'])->name('items.edit');
+    Route::put('/items/{item}', [\App\Http\Controllers\ItemController::class, 'update'])->name('items.update');
+    Route::delete('/items/{item}', [\App\Http\Controllers\ItemController::class, 'destroy'])->name('items.destroy');
 
     // Pengajuan & Peminjaman Siswa (US #2, #8)
     Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
