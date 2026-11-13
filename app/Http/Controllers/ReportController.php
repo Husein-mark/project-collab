@@ -54,4 +54,72 @@ class ReportController extends Controller
             'totalReturned'
         ));
     }
+
+    /**
+     * Daftar rekap kedisiplinan peminjaman tiap siswa (US #12)
+     */
+    public function studentHistory(Request $request)
+    {
+        $query = User::where('role', 'siswa')
+            ->withCount([
+                'loans as total_loans',
+                'loans as overdue_loans' => function ($q) {
+                    $q->where('is_overdue', true);
+                },
+                'loans as damaged_loans' => function ($q) {
+                    $q->where('damage_reported', true);
+                },
+                'loans as active_loans' => function ($q) {
+                    $q->whereIn('status', ['approved', 'borrowed', 'overdue']);
+                },
+            ]);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('nis_nip', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->orderBy('name')->paginate(15)->withQueryString();
+
+        return view('reports.students', compact('students'));
+    }
+
+    /**
+     * Detail riwayat peminjaman siswa untuk evaluasi kedisiplinan guru (US #12)
+     */
+    public function studentDetail(User $user)
+    {
+        if ($user->role !== 'siswa') {
+            abort(404);
+        }
+
+        $loans = Loan::with('item')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->paginate(15);
+
+        $totalLoans = Loan::where('user_id', $user->id)->count();
+        $overdueCount = Loan::where('user_id', $user->id)->where('is_overdue', true)->count();
+        $damageCount = Loan::where('user_id', $user->id)->where('damage_reported', true)->count();
+
+        // Hitung persentase kedisiplinan (0 - 100%)
+        $disciplineScore = 100;
+        if ($totalLoans > 0) {
+            $deduction = ($overdueCount * 15) + ($damageCount * 30);
+            $disciplineScore = max(10, 100 - $deduction);
+        }
+
+        return view('reports.student_detail', compact(
+            'user', 
+            'loans', 
+            'totalLoans', 
+            'overdueCount', 
+            'damageCount', 
+            'disciplineScore'
+        ));
+    }
 }

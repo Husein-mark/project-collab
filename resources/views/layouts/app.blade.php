@@ -88,8 +88,12 @@
                             Notice Kerusakan
                         </a>
                         <a href="{{ route('reports.index') }}" 
-                           class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.*') ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                           class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.index') ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             Laporan & Monitoring
+                        </a>
+                        <a href="{{ route('reports.students') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.students*') ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            Kedisiplinan Siswa
                         </a>
                         @endif
                     </nav>
