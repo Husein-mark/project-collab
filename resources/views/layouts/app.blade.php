@@ -95,6 +95,10 @@
                            class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.students*') ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             Kedisiplinan Siswa
                         </a>
+                        <a href="{{ route('reports.damagedStats') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.damagedStats') ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            Statistik Kerusakan
+                        </a>
                         @endif
                     </nav>
                     @endauth
