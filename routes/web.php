@@ -40,8 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/notices', [\App\Http\Controllers\DamageNoticeController::class, 'index'])->name('notices.index');
     Route::post('/notices/{notice}/status', [\App\Http\Controllers\DamageNoticeController::class, 'updateStatus'])->name('notices.updateStatus');
 
-    // Laporan & Monitoring Otomatis (US #10, #12)
+    // Laporan & Monitoring Otomatis (US #10, #12, #14, #15)
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/damaged-stats', [\App\Http\Controllers\ReportController::class, 'damagedStats'])->name('reports.damagedStats');
     Route::get('/reports/students', [\App\Http\Controllers\ReportController::class, 'studentHistory'])->name('reports.students');
     Route::get('/reports/students/{user}', [\App\Http\Controllers\ReportController::class, 'studentDetail'])->name('reports.students.detail');
 });

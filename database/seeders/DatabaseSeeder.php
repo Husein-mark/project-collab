@@ -73,5 +73,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(ItemSeeder::class);
+        $this->call(LoanSimulationSeeder::class);
     }
 }
